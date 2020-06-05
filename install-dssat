@@ -15,12 +15,19 @@ while [[ $# -gt 0 ]]; do
     -f|--inst-folder)
       INSTDIR=$2
       ;;
+    -r|--repo-github)
+      GITREPO=$2
+      ;;
+    -b|--repo-branch)
+      BRANCH=$2
     -h|--help)
       echo -e "Usage: install-dssat [options] ... \n"
       echo -e "Clone, compile and install DSSAT \n"
       echo -e "Options:"
-      echo -e " -f, --inst-folder <folder> \t Installation folder absolute path. Default /opt/dssat"
-      echo -e " -h, --help                 \t Display a help message and quit."
+      echo -e " -f, --inst-folder <arg> \t Installation folder absolute path. Default /opt/dssat"
+      echo -e " -r, --repo-github <arg> \t GitHub repository to clone from. Default https://github.com/DSSAT/dssat-csm-os.git"
+      echo -e " -b, --repo-branch <arg> \t Git branch to clone from. Default master"
+      echo -e " -h, --help              \t Display a help message and quit."
       exit
       ;;
   esac
@@ -46,6 +53,10 @@ done
 readonly INSTDIR=${INSTDIR:-/opt/dssat}
 [[ -z $1 ]] && echo ${yellow}"Installation folder: ${INSTDIR}"${reset}
 
+# set GitHub repository and branch
+readonly GITREPO=${GITREPO:-https://github.com/DSSAT/dssat-csm-os.git}
+readonly BRANCH=${BRANCH:-master}
+
 # remove old installation files
 [[ -d $INSTDIR ]] && sudo rm -rf $INSTDIR
 sudo mkdir $INSTDIR
@@ -53,7 +64,7 @@ sudo mkdir $INSTDIR
 # clone repo from github
 echo ${yellow}"Cloning DSSAT repo from GitHub"${reset}
 [[ -d dssat-csm-os ]] && sudo rm -rf dssat-csm-os
-git clone https://github.com/DSSAT/dssat-csm-os.git
+git clone -b $BRANCH $GITREPO
 cd dssat-csm-os
 
 # create build folder
