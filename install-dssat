@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+#
+# Download this file and execute it!
+# wget https://raw.githubusercontent.com/danielbonhaure/dssat-installation/master/install-dssat --output-document=install-dssat
+#
+
+# set output colors
+readonly red=$(tput setaf 1)
+readonly yellow=$(tput setaf 3)
+readonly reset=$(tput sgr0)
+
+# process script inputs
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -f|--inst-folder)
+      INSTDIR=$2
+      ;;
+    -h|--help)
+      echo -e "Usage: install-dssat [options] ... \n"
+      echo -e "Clone, compile and install DSSAT \n"
+      echo -e "Options:"
+      echo -e " -f, --inst-folder <folder> \t Installation folder absolute path. Default /opt/dssat"
+      echo -e " -h, --help                 \t Display a help message and quit."
+      exit
+      ;;
+  esac
+  shift
+done
+
+# check dependencies
+[[ ! -n `which git` ]] &&
+  echo ${red}"Git does not seem to be installed on your system! Please install it to continue. "${reset} &&
+  exit 1
+[[ ! -n `which cmake` ]] &&
+  echo ${red}"CMake does not seem to be installed on your system! Please install it to continue. "${reset} &&
+  exit 1
+[[ ! -n `which gfortran` ]] &&
+  echo ${red}"GFortran does not seem to be installed on your system! Please install it to continue. "${reset} &&
+  exit 1
+
+#
+#
+#
+
+# set installation folder
+readonly INSTDIR=${INSTDIR:-/opt/dssat}
+[[ -z $1 ]] && echo ${yellow}"Installation folder: ${INSTDIR}"${reset}
+
+# remove old installation files
+[[ -d $INSTDIR ]] && sudo rm -rf $INSTDIR
+sudo mkdir $INSTDIR
+
+# clone repo from github
+echo ${yellow}"Cloning DSSAT repo from GitHub"${reset}
+[[ -d dssat-csm-os ]] && sudo rm -rf dssat-csm-os
+git clone https://github.com/DSSAT/dssat-csm-os.git
+cd dssat-csm-os
+
+# create build folder
+mkdir build
+cd build
+
+# compile and install DSSAT
+echo ${yellow}"Compiling DSSAT (cmake)"${reset}
+cmake -DCMAKE_INSTALL_PREFIX=$INSTDIR ..
+echo ${yellow}"Compiling DSSAT (make)"${reset}
+make
+echo ${yellow}"Installing DSSAT"${reset}
+sudo make install
+
+# add executable to search path
+readonly SYMLINK=/usr/local/bin/run_dssat
+[[ -e $SYMLINK ]] && sudo rm -f $SYMLINK
+sudo ln -s $INSTDIR/run_dssat $SYMLINK
+
+# create Soil and Weather folders
+sudo mkdir $INSTDIR/Soil
+sudo mkdir $INSTDIR/Weather
+
+# remove files and folders created after running make
+echo ${yellow}"Cleaning"${reset}
+cd ..
+cmake -P distclean.cmake
+
+# return to initial folder
+cd ..
+
+#
+#
+#
