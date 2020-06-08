@@ -9,29 +9,25 @@ readonly red=$(tput setaf 1)
 readonly yellow=$(tput setaf 3)
 readonly reset=$(tput sgr0)
 
+# print usage help message
+usage() {
+  echo -e "Usage: install-dssat [options] ... \n"
+  echo -e "Clone, compile and install DSSAT \n"
+  echo -e "Options:"
+  echo -e " -f, --inst-folder <arg> \t Installation folder absolute path. Default /opt/dssat"
+  echo -e " -r, --repo-github <arg> \t GitHub repository to clone from. Default https://github.com/DSSAT/dssat-csm-os.git"
+  echo -e " -b, --repo-branch <arg> \t Git branch to clone from. Default master"
+  echo -e " -h, --help              \t Display a help message and quit."
+}
+
 # process script inputs
 while [[ $# -gt 0 ]]; do
   case $1 in
-    -f|--inst-folder)
-      INSTDIR=$2
-      ;;
-    -r|--repo-github)
-      GITREPO=$2
-      ;;
-    -b|--repo-branch)
-      BRANCH=$2
-    -h|--help)
-      echo -e "Usage: install-dssat [options] ... \n"
-      echo -e "Clone, compile and install DSSAT \n"
-      echo -e "Options:"
-      echo -e " -f, --inst-folder <arg> \t Installation folder absolute path. Default /opt/dssat"
-      echo -e " -r, --repo-github <arg> \t GitHub repository to clone from. Default https://github.com/DSSAT/dssat-csm-os.git"
-      echo -e " -b, --repo-branch <arg> \t Git branch to clone from. Default master"
-      echo -e " -h, --help              \t Display a help message and quit."
-      exit
-      ;;
+    -f|--inst-folder) INSTDIR=$2; shift 2;;
+    -r|--repo-github) GITREPO=$2; shift 2;;
+    -b|--repo-branch) BRANCH=$2; shift 2;;
+    -h|--help|*) usage; exit;;
   esac
-  shift
 done
 
 # check dependencies
