@@ -60,7 +60,7 @@ sudo mkdir $INSTDIR
 # clone repo from github
 echo ${yellow}"Cloning DSSAT repo from GitHub"${reset}
 [[ -d dssat-csm-os ]] && sudo rm -rf dssat-csm-os
-git clone -b $BRANCH $GITREPO
+git clone --depth 1 --branch $BRANCH $GITREPO
 cd dssat-csm-os
 
 # create build folder
