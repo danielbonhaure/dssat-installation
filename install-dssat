@@ -16,7 +16,7 @@ usage() {
   echo -e "Options:"
   echo -e " -f, --inst-folder <arg> \t Installation folder absolute path. Default /opt/dssat"
   echo -e " -r, --repo-github <arg> \t GitHub repository to clone from. Default https://github.com/DSSAT/dssat-csm-os.git"
-  echo -e " -b, --repo-branch <arg> \t Git branch to clone from. Default master"
+  echo -e " -b, --repo-branch <arg> \t Git branch/tag to clone from. Default: tag v4.7.5.42"
   echo -e " -h, --help              \t Display a help message and quit."
 }
 
@@ -51,7 +51,7 @@ readonly INSTDIR=${INSTDIR:-/opt/dssat}
 
 # set GitHub repository and branch
 readonly GITREPO=${GITREPO:-https://github.com/DSSAT/dssat-csm-os.git}
-readonly BRANCH=${BRANCH:-master}
+readonly BRANCH=${BRANCH:-v4.7.5.42}
 
 # remove old installation files
 [[ -d $INSTDIR ]] && sudo rm -rf $INSTDIR
