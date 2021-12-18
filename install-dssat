@@ -17,6 +17,7 @@ usage() {
   echo -e " -f, --inst-folder <arg> \t Installation folder absolute path. Default /opt/dssat"
   echo -e " -r, --repo-github <arg> \t GitHub repository to clone from. Default https://github.com/DSSAT/dssat-csm-os.git"
   echo -e " -b, --repo-branch <arg> \t Git branch/tag to clone from. Default: tag v4.7.5.42"
+  echo -e " -d, --debug-mode        \t Build DSSAT in DEBUG mode"
   echo -e " -h, --help              \t Display a help message and quit."
 }
 
@@ -26,6 +27,7 @@ while [[ $# -gt 0 ]]; do
     -f|--inst-folder) INSTDIR=$2; shift 2;;
     -r|--repo-github) GITREPO=$2; shift 2;;
     -b|--repo-branch) BRANCH=$2; shift 2;;
+    -d|--debug-mode) DEBUG_MODE=true; shift 1;;
     -h|--help|*) usage; exit;;
   esac
 done
@@ -67,9 +69,16 @@ cd dssat-csm-os
 mkdir build
 cd build
 
+# set optional build flags
+build_extra_params=()
+if [[ $DEBUG_MODE ]]; then
+    build_extra_params+=(-DCMAKE_BUILD_TYPE=DEBUG)
+fi
+
+
 # compile and install DSSAT
 echo ${yellow}"Compiling DSSAT (cmake)"${reset}
-cmake -DCMAKE_INSTALL_PREFIX=$INSTDIR ..
+cmake -DCMAKE_INSTALL_PREFIX=$INSTDIR .. ${build_extra_params[@]}
 echo ${yellow}"Compiling DSSAT (make)"${reset}
 make
 echo ${yellow}"Installing DSSAT"${reset}
