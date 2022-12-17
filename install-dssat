@@ -72,7 +72,7 @@ mkdir build
 cd build
 
 # create cmake config file for cross-compiling
-[[ $CROSS_COMPILE_W ]] && cat > /tmp/TC-mingw.cmake <<- 'ENDFILE'
+[[ $CROSS_COMPILE_W ]] && cat > /tmp/TC-mingw-DSSAT.cmake <<- 'ENDFILE'
 # the name of the target operating system
 set(CMAKE_SYSTEM_NAME Windows)
 
@@ -94,7 +94,7 @@ if [[ $DEBUG_MODE ]]; then
     build_extra_params+=(-DCMAKE_BUILD_TYPE=DEBUG)
 fi
 if [[ $CROSS_COMPILE_W ]]; then
-    build_extra_params+=(-DCMAKE_TOOLCHAIN_FILE=/tmp/TC-mingw.cmake)
+    build_extra_params+=(-DCMAKE_TOOLCHAIN_FILE=/tmp/TC-mingw-DSSAT.cmake)
 fi
 
 
@@ -113,6 +113,11 @@ if [[ ! $CROSS_COMPILE_W ]]; then
     sudo ln -s $INSTDIR/run_dssat $SYMLINK
 fi
 
+# remove cmake config file for cross-compiling
+if [[ $CROSS_COMPILE_W ]]; then
+    [[ -f /tmp/TC-mingw-DSSAT.cmake ]] && rm -f /tmp/TC-mingw-DSSAT.cmake
+fi
+
 # create Soil and Weather folders
 sudo mkdir $INSTDIR/Soil
 sudo mkdir $INSTDIR/Weather
@@ -122,13 +127,14 @@ echo ${yellow}"Cleaning"${reset}
 cd ..
 cmake -P distclean.cmake
 
-# remove temporal files
-if [[ $CROSS_COMPILE_W ]]; then
-    rm /tmp/TC-mingw.cmake
-fi
+# remove build folder
+[[ -d build ]] && sudo rm -rf build
 
 # return to initial folder
 cd ..
+
+# remove DSSAT previously cloned source code
+[[ -d dssat-csm-os ]] && sudo rm -rf dssat-csm-os
 
 #
 #
