@@ -18,6 +18,7 @@ usage() {
   echo -e " -r, --repo-github <arg> \t GitHub repository to clone from. Default https://github.com/DSSAT/dssat-csm-os.git"
   echo -e " -b, --repo-branch <arg> \t Git branch/tag to clone from. Default: tag v4.8.0.18"
   echo -e " -d, --debug-mode        \t Build DSSAT in DEBUG mode"
+  echo -e " -w, --cross-compile-w   \t Cross compile DSSAT for Windows"
   echo -e " -h, --help              \t Display a help message and quit."
 }
 
@@ -28,6 +29,7 @@ while [[ $# -gt 0 ]]; do
     -r|--repo-github) GITREPO=$2; shift 2;;
     -b|--repo-branch) BRANCH=$2; shift 2;;
     -d|--debug-mode) DEBUG_MODE=true; shift 1;;
+    -w|--cross-compile-w) CROSS_COMPILE_W=true; shift 1;;
     -h|--help|*) usage; exit;;
   esac
 done
@@ -69,10 +71,30 @@ cd dssat-csm-os
 mkdir build
 cd build
 
+# create cmake config file for cross-compiling
+[[ $CROSS_COMPILE_W ]] && cat > /tmp/TC-mingw.cmake <<- 'ENDFILE'
+# the name of the target operating system
+set(CMAKE_SYSTEM_NAME Windows)
+
+# which compilers to use for GFortran
+set(CMAKE_Fortran_COMPILER /usr/bin/i686-w64-mingw32-gfortran CACHE FILEPATH "GFortran compiler")
+
+# adjust the default behavior of the FIND_XXX() commands:
+# search programs in the host environment
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+
+# search headers and libraries in the target environment
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+ENDFILE
+
 # set optional build flags
 build_extra_params=()
 if [[ $DEBUG_MODE ]]; then
     build_extra_params+=(-DCMAKE_BUILD_TYPE=DEBUG)
+fi
+if [[ $CROSS_COMPILE_W ]]; then
+    build_extra_params+=(-DCMAKE_TOOLCHAIN_FILE=/tmp/TC-mingw.cmake)
 fi
 
 
@@ -85,9 +107,11 @@ echo ${yellow}"Installing DSSAT"${reset}
 sudo make install
 
 # add executable to search path
-readonly SYMLINK=/usr/local/bin/run_dssat
-[[ -e $SYMLINK ]] && sudo rm -f $SYMLINK
-sudo ln -s $INSTDIR/run_dssat $SYMLINK
+if [[ ! $CROSS_COMPILE_W ]]; then
+    readonly SYMLINK=/usr/local/bin/run_dssat
+    [[ -e $SYMLINK ]] && sudo rm -f $SYMLINK
+    sudo ln -s $INSTDIR/run_dssat $SYMLINK
+fi
 
 # create Soil and Weather folders
 sudo mkdir $INSTDIR/Soil
@@ -97,6 +121,11 @@ sudo mkdir $INSTDIR/Weather
 echo ${yellow}"Cleaning"${reset}
 cd ..
 cmake -P distclean.cmake
+
+# remove temporal files
+if [[ $CROSS_COMPILE_W ]]; then
+    rm /tmp/TC-mingw.cmake
+fi
 
 # return to initial folder
 cd ..
